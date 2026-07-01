@@ -49,7 +49,9 @@ jobs:
         run: npm run ${{ matrix.sidecar }} -w @hauler-helper/companion
 
       - name: Build desktop app + installers
-        run: npm run build -w @hauler-helper/companion-desktop
+        run: |
+          npm run sidecars -w @hauler-helper/companion-desktop
+          npm run tauri -w @hauler-helper/companion-desktop -- build --verbose
 
       - name: Collect installers (Linux)
         if: matrix.os == 'ubuntu-22.04'
