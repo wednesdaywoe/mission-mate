@@ -25,6 +25,8 @@ jobs:
       # linuxdeploy is itself an AppImage and needs FUSE, which GitHub runners
       # lack — extract-and-run instead so AppImage bundling works. (No-op on Windows.)
       APPIMAGE_EXTRACT_AND_RUN: 1
+      # linuxdeploy's bundled `strip` can't parse modern libs (.relr.dyn) — skip it.
+      NO_STRIP: true
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +47,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Tauri bundles an old linuxdeploy that crashes on modern GTK/WebKit libs
+      # ("Failed to run ldd"). Pre-seed its cache with the current release.
+      - name: Use current linuxdeploy for AppImage
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          mkdir -p ~/.cache/tauri
+          curl -fSL -o ~/.cache/tauri/linuxdeploy-x86_64.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x ~/.cache/tauri/linuxdeploy-x86_64.AppImage
+
       - name: Build companion sidecar
         run: npm run ${{ matrix.sidecar }} -w @hauler-helper/companion
 
@@ -59,8 +71,9 @@ jobs:
         run: |
           mkdir -p out
           B=companion-desktop/src-tauri/target/release/bundle
-          cp "$B"/deb/*.deb out/mission-mate.deb
-          cp "$B"/rpm/*.rpm out/mission-mate.rpm
+          cp "$B"/appimage/*.AppImage out/mission-mate.AppImage
+          cp "$B"/deb/*.deb           out/mission-mate.deb
+          cp "$B"/rpm/*.rpm           out/mission-mate.rpm
 
       - name: Collect installers (Windows)
         if: matrix.os == 'windows-latest'
