@@ -21,6 +21,10 @@ jobs:
           - os: windows-latest
             sidecar: build:windows
     runs-on: ${{ matrix.os }}
+    env:
+      # linuxdeploy is itself an AppImage and needs FUSE, which GitHub runners
+      # lack — extract-and-run instead so AppImage bundling works. (No-op on Windows.)
+      APPIMAGE_EXTRACT_AND_RUN: 1
     steps:
       - uses: actions/checkout@v4
 
