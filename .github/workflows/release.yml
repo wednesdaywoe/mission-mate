@@ -59,9 +59,8 @@ jobs:
         run: |
           mkdir -p out
           B=companion-desktop/src-tauri/target/release/bundle
-          cp "$B"/appimage/*.AppImage out/mission-mate.AppImage
-          cp "$B"/deb/*.deb           out/mission-mate.deb
-          cp "$B"/rpm/*.rpm           out/mission-mate.rpm
+          cp "$B"/deb/*.deb out/mission-mate.deb
+          cp "$B"/rpm/*.rpm out/mission-mate.rpm
 
       - name: Collect installers (Windows)
         if: matrix.os == 'windows-latest'
