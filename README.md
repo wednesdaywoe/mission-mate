@@ -8,8 +8,7 @@ web app can track missions, correlate them to your scans, and fix OCR misreads.
 - **Read-only.** It only tails the log file the game itself writes. No memory
   reading, no injection, nothing that touches the game client.
 - **Opt-in and optional.** HaulerHelper works fine without it.
-- **Open-source** so you can see exactly what it does. Only ever download builds
-  from the official source (linked from **sc-haulerhelper.com**).
+- **Open-source** for transparency. Don't download Mission Mate ANYWHERE other than this repo. (linked from **sc-haulerhelper.com**).
 
 ## Download
 
@@ -19,7 +18,7 @@ Grab the desktop app from the [**latest release**](../../releases/latest):
 - **Linux** — `mission-mate.AppImage` (portable), or `.deb` / `.rpm`
 
 Launch it, sign in with your HaulerHelper account, and leave it running while you
-play. (macOS isn't supported — there's no SC client there.)
+play. (macOS isn't supported)
 
 ## What's inside
 
