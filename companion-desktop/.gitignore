@@ -1,0 +1,8 @@
+# Rust build output
+src-tauri/target/
+# Tauri generated schemas/config
+src-tauri/gen/
+# Sidecar binaries — build artifacts copied from packages/companion/dist
+# (regenerate with: bun run build -w @hauler-helper/companion, then copy)
+src-tauri/binaries/
+node_modules/

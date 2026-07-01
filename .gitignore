@@ -1,0 +1,12 @@
+node_modules
+dist
+*.tsbuildinfo
+*.local
+.env
+.env.*
+
+# Rust / Tauri build output
+companion-desktop/src-tauri/target/
+companion-desktop/src-tauri/gen/
+# Sidecar binaries (built from companion/dist by sync-sidecars)
+companion-desktop/src-tauri/binaries/

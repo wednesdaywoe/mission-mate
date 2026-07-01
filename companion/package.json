@@ -1,0 +1,22 @@
+{
+  "name": "@hauler-helper/companion",
+  "version": "0.1.0",
+  "description": "Mission Mate — local companion that tails the SC Game.log and pushes mission lifecycle events to Supabase Realtime. Windows-first, Linux-compatible.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mission-mate": "src/cli.ts"
+  },
+  "scripts": {
+    "start": "tsx src/cli.ts",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "build": "bun run build:linux && bun run build:windows",
+    "build:linux": "bun build src/cli.ts --compile --target=bun-linux-x64 --outfile dist/mission-mate-linux",
+    "build:windows": "bun build src/cli.ts --compile --target=bun-windows-x64 --outfile dist/mission-mate-windows.exe"
+  },
+  "dependencies": {
+    "@hauler-helper/log-parser": "*",
+    "@supabase/supabase-js": "^2.103.0"
+  }
+}

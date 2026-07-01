@@ -1,0 +1,72 @@
+name: release
+
+# Build the desktop installers on real runners (Linux + Windows) and publish
+# them to the GitHub Release for the pushed tag, under the stable asset names
+# the HaulerHelper download buttons point at.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            sidecar: build:linux
+          - os: windows-latest
+            sidecar: build:windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux webview + bundling deps
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev librsvg2-dev patchelf \
+            libayatana-appindicator3-dev
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build companion sidecar
+        run: npm run ${{ matrix.sidecar }} -w @hauler-helper/companion
+
+      - name: Build desktop app + installers
+        run: npm run build -w @hauler-helper/companion-desktop
+
+      - name: Collect installers (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          mkdir -p out
+          B=companion-desktop/src-tauri/target/release/bundle
+          cp "$B"/appimage/*.AppImage out/mission-mate.AppImage
+          cp "$B"/deb/*.deb           out/mission-mate.deb
+          cp "$B"/rpm/*.rpm           out/mission-mate.rpm
+
+      - name: Collect installers (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          mkdir -p out
+          B=companion-desktop/src-tauri/target/release/bundle
+          cp "$B"/nsis/*-setup.exe out/mission-mate-setup.exe
+
+      - name: Publish to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          fail_on_unmatched_files: true

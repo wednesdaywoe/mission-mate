@@ -1,0 +1,22 @@
+{
+  "name": "mission-mate",
+  "version": "0.1.0",
+  "description": "Mission Mate — the open-source Star Citizen Game.log companion for HaulerHelper. Reads your log locally and streams mission events to your account.",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "log-parser",
+    "companion",
+    "companion-desktop"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "~5.9.3",
+    "tsx": "^4.22.4",
+    "vitest": "^3.0.0"
+  }
+}

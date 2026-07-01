@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mission Mate</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="dot" id="lamp" data-state="idle"></span>
+        <h1>Mission Mate</h1>
+      </div>
+      <span class="status" id="status">Not connected</span>
+    </header>
+
+    <main>
+      <section class="card" id="signin">
+        <p class="lead">
+          Sign in once with your HaulerHelper account, then leave this running
+          while you play.
+          <a href="#" id="open-site">Open HaulerHelper&nbsp;→</a>
+        </p>
+        <ol class="steps">
+          <li>
+            In HaulerHelper (signed in): DevTools&nbsp;→ Application&nbsp;→ Local
+            Storage&nbsp;→ copy the value of <code>haulerHelperAuth</code>.
+          </li>
+          <li>Paste it below and click <strong>Connect</strong>.</li>
+        </ol>
+        <textarea
+          id="token"
+          placeholder="Paste your haulerHelperAuth value here…"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+        <div class="row">
+          <button id="connect" class="primary">Connect</button>
+          <button id="stop" class="ghost" disabled>Stop</button>
+        </div>
+      </section>
+
+      <section class="card logwrap">
+        <div class="loghead">Activity</div>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

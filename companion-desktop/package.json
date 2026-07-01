@@ -1,0 +1,19 @@
+{
+  "name": "@hauler-helper/companion-desktop",
+  "version": "0.1.0",
+  "description": "Mission Mate desktop app — a Tauri shell that runs the compiled companion as a sidecar (no terminal). Window + GUI sign-in + status.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "sidecars": "node scripts/sync-sidecars.mjs",
+    "dev": "npm run sidecars && tauri dev",
+    "build": "npm run sidecars && tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

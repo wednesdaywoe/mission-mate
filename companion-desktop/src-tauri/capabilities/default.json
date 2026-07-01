@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capabilities for the Mission Mate window. Sidecar spawning happens in Rust, so the window only needs to call our own commands.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
