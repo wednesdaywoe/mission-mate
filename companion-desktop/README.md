@@ -11,6 +11,9 @@ and a live status/activity view.
 │ ● Watching Game.log          │
 │  paste haulerHelperAuth …    │
 │  [ Connect ]  [ Stop ]       │
+│  Game.log   Found automatic. │
+│  …/StarCitizen/LIVE/Game.log │
+│  [ Choose Game.log… ]        │
 │  Activity ────────────────   │
 │  Signed in.                  │
 │  Watching LIVE: …/Game.log   │
@@ -25,6 +28,12 @@ and a live status/activity view.
   `login --file` (reusing its tolerant token parser), then spawns it in watch
   mode and streams stdout/stderr to the window. `stop` kills it. Supabase
   publishable creds are passed to the sidecar via env.
+- **Game.log picker** — `log_status` shells out to the sidecar's
+  `print-config --json` to show where the log is (or that it is missing);
+  `choose_log_file` opens a native file dialog and hands the result to the
+  sidecar's `set-log`, then bounces the watcher so it takes effect at once.
+  `clear_log_file` undoes it. Players hitting a non-standard install used to be
+  told to hand-edit `config.json`; this replaces that.
 - **UI** ([ui/](ui/)) is a static page using the global Tauri API (no bundler).
 - The companion binary is bundled via `bundle.externalBin` and resolved next to
   the app at runtime.
@@ -63,8 +72,8 @@ Windows build host just needs steps 1–2. macOS is not a target.
 
 1. Install the package (`.deb`/`.rpm`/`.AppImage`, or the Windows installer).
 2. Launch **Mission Mate** (it's a normal app — no terminal).
-3. In HaulerHelper (signed in): DevTools → Application → Local Storage → copy
-   `haulerHelperAuth`, paste it into the window, click **Connect**.
+3. In HaulerHelper (signed in), open the Mission Mate panel and click
+   **Copy pairing token**, paste it into the window, click **Connect**.
 4. Launch Star Citizen — events stream into HaulerHelper.
 
 ## Deferred (Phase 5 polish)

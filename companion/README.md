@@ -29,10 +29,10 @@ npx tsx companion/src/cli.ts
 Web auth is Discord-OAuth only, so the companion uses a pasted session rather
 than a headless OAuth flow:
 
-1. In HaulerHelper (signed in): DevTools → Application → Local Storage → copy the
-   value of `haulerHelperAuth` and save it to a file (e.g. `token.json`). A real
-   session is larger than a terminal's line limit, so it must come from a file
-   or pipe — not a typed prompt.
+1. In HaulerHelper (signed in), open the Mission Mate panel, click
+   **Copy pairing token**, and save the clipboard contents to a file (e.g.
+   `token.json`). A real session is larger than a terminal's line limit, so it
+   must come from a file or pipe — not a typed prompt.
 2. `npx tsx companion/src/cli.ts login --file ./token.json` (or
    `... login < token.json`). The access + refresh tokens are stored in the OS
    config dir (`~/.config/mission-mate` / `%APPDATA%\mission-mate`, mode 0600);
@@ -80,6 +80,40 @@ chmod +x mission-mate-linux
 `--help`, log-path auto-discovery, and the paste-token flow are identical to the
 `tsx` invocation above.
 
+## "Could not find Game.log"
+
+Auto-discovery covers the default installs (see `discover.ts`). A game on a
+second drive, or a non-standard Wine prefix, needs one explicit pointer. In
+order of preference:
+
+```bash
+# 1. Desktop app: the Game.log card → "Choose Game.log…" (native file picker).
+# 2. CLI, persistent — writes logPath into the config for you:
+mission-mate set-log "D:/Program Files/Roberts Space Industries/StarCitizen/LIVE/Game.log"
+mission-mate set-log --clear          # forget it, go back to auto-discovery
+# 3. CLI, this run only:
+mission-mate --log "D:/…/LIVE/Game.log"
+```
+
+Editing the config by hand works too — `~/.config/mission-mate/config.json` /
+`%APPDATA%\mission-mate\config.json`. It is one JSON object; add a `logPath`
+member, comma-separating it from whatever is already there:
+
+```json
+{
+  "session": { "access_token": "…", "refresh_token": "…" },
+  "logPath": "D:/Program Files/Roberts Space Industries/StarCitizen/LIVE/Game.log"
+}
+```
+
+On Windows, write the path with forward slashes or doubled backslashes — a
+single `\` is a JSON escape and will make the file unreadable. The CLI prints
+this same guidance (with the real config path filled in) whenever discovery
+fails, so players never have to find it here.
+
+Each release channel has its own log: `--channel PTU` etc., or `"channel":
+"PTU"` in the config.
+
 ## Architecture
 
 - **tail.ts** — `planRead` (pure size→range decision, §5 truncation/rotation) +
@@ -95,10 +129,9 @@ chmod +x mission-mate-linux
 
 ## Database
 
-The companion writes to the HaulerHelper Supabase project (`mission_log_events`
-+ `companion_status`, RLS-scoped to the signed-in user). That schema is owned and
-provisioned by the HaulerHelper backend — companion users don't set anything up;
-they just sign in.
+Apply [`supabase/migrations/20260630120000_mission_mate.sql`](../../supabase/migrations/20260630120000_mission_mate.sql)
+(additive/nullable; `mission_log_events`, `companion_status`, `missions.game_mission_id`,
+RLS, Realtime publication). Mirrors MISSION_MATE_PLAN §8.
 
 ## Out of scope (later phases)
 

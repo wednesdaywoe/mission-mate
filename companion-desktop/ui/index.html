@@ -24,8 +24,8 @@
         </p>
         <ol class="steps">
           <li>
-            In HaulerHelper (signed in): DevTools&nbsp;→ Application&nbsp;→ Local
-            Storage&nbsp;→ copy the value of <code>haulerHelperAuth</code>.
+            In HaulerHelper (signed in), open the Mission Mate panel and click
+            <strong>Copy pairing token</strong>.
           </li>
           <li>Paste it below and click <strong>Connect</strong>.</li>
         </ol>
@@ -38,6 +38,23 @@
         <div class="row">
           <button id="connect" class="primary">Connect</button>
           <button id="stop" class="ghost" disabled>Stop</button>
+        </div>
+      </section>
+
+      <section class="card" id="logfile">
+        <div class="cardhead">
+          <span>Game.log</span>
+          <span class="tag" id="logpath-tag">Checking…</span>
+        </div>
+        <p class="pathline" id="logpath-value">Looking for your game log…</p>
+        <p class="hint" id="logpath-hint">
+          Mission Mate checks the usual Star&nbsp;Citizen install folders on its
+          own. If it comes up empty — the game lives on another drive, say — point
+          it at the file yourself.
+        </p>
+        <div class="row">
+          <button id="choose-log" class="ghost">Choose Game.log…</button>
+          <button id="clear-log" class="ghost" hidden>Search automatically</button>
         </div>
       </section>
 

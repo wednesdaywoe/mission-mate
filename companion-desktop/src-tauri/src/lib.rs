@@ -8,6 +8,7 @@
 
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
@@ -110,6 +111,107 @@ fn start_watch(app: &AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// What the sidecar currently knows about the Game.log, for the window's
+/// "Game.log" row. Mirrors `mission-mate print-config --json`.
+#[derive(Clone, serde::Serialize, serde::Deserialize, Default)]
+struct LogStatus {
+    #[serde(rename = "configPath")]
+    config_path: Option<String>,
+    /// Path the player chose by hand, if any.
+    #[serde(rename = "savedLogPath")]
+    saved_log_path: Option<String>,
+    /// What the companion would actually watch right now (auto-found or saved).
+    #[serde(rename = "resolvedLogPath")]
+    resolved_log_path: Option<String>,
+}
+
+/// Ask the sidecar where the log is. Never fails the UI — an unreadable answer
+/// just means "unknown", and the window shows the picker either way.
+#[tauri::command]
+async fn log_status(app: AppHandle) -> LogStatus {
+    let Ok(cmd) = app.shell().sidecar("mission-mate") else {
+        return LogStatus::default();
+    };
+    let Ok(out) = cmd.args(["print-config", "--json"]).output().await else {
+        return LogStatus::default();
+    };
+    serde_json::from_slice(&out.stdout).unwrap_or_default()
+}
+
+/// Open a native file picker, hand the choice to the sidecar's `set-log`, and
+/// restart the watcher so the new path takes effect immediately.
+///
+/// This is the whole reason the plugin is here: players were being told to
+/// hand-edit config.json, which is not a reasonable ask.
+#[tauri::command]
+async fn choose_log_file(app: AppHandle) -> Result<LogStatus, String> {
+    let (tx, mut rx) = tauri::async_runtime::channel(1);
+    app.dialog()
+        .file()
+        .set_title("Select your Star Citizen Game.log")
+        .add_filter("Game log", &["log"])
+        // try_send, not blocking_send: this callback runs on the UI thread and
+        // the channel has room for the single value we ever put in it.
+        .pick_file(move |picked| {
+            let _ = tx.try_send(picked);
+        });
+
+    let Some(Some(picked)) = rx.recv().await else {
+        return Ok(log_status(app).await); // cancelled — nothing changed
+    };
+    let path = picked.to_string();
+
+    let out = app
+        .shell()
+        .sidecar("mission-mate")
+        .map_err(|e| e.to_string())?
+        .args(["set-log", &path])
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+        return Err(if err.is_empty() {
+            format!("Could not use that file: {path}")
+        } else {
+            err
+        });
+    }
+
+    emit_log(&app, format!("Game.log set to {path}"));
+    restart_watch(&app);
+    Ok(log_status(app).await)
+}
+
+/// Forget the chosen path and go back to searching the usual install folders.
+#[tauri::command]
+async fn clear_log_file(app: AppHandle) -> Result<LogStatus, String> {
+    let out = app
+        .shell()
+        .sidecar("mission-mate")
+        .map_err(|e| e.to_string())?
+        .args(["set-log", "--clear"])
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    emit_log(&app, "Back to finding Game.log automatically.");
+    restart_watch(&app);
+    Ok(log_status(app).await)
+}
+
+/// Bounce the watcher if it is running, so a path change is picked up without
+/// the player having to press Stop then Connect.
+fn restart_watch(app: &AppHandle) {
+    if app.state::<AppState>().child.lock().unwrap().is_none() {
+        return; // not watching — nothing to pick the new path up for
+    }
+    stop(app.clone());
+    let _ = start_watch(app);
+}
+
 #[tauri::command]
 fn stop(app: AppHandle) {
     if let Some(child) = app.state::<AppState>().child.lock().unwrap().take() {
@@ -127,8 +229,16 @@ fn open_site() {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
-        .invoke_handler(tauri::generate_handler![connect, stop, open_site])
+        .invoke_handler(tauri::generate_handler![
+            connect,
+            stop,
+            open_site,
+            log_status,
+            choose_log_file,
+            clear_log_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Mission Mate");
 }
